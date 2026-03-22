@@ -1,4 +1,3 @@
-from fastapi import Request
 from fastapi.responses import Response
 from app.agents.chat_agent import chat_with_ai
 from twilio.rest import Client
@@ -17,42 +16,48 @@ def split_message(text, limit=1500):
     return [text[i:i + limit] for i in range(0, len(text), limit)]
 
 
-async def handle_whatsapp(request: Request):
-    form = await request.form()
+async def process_message(incoming_msg, user_id):
+    # 🔥 DEBUG START
+    print("🔥 process_message called")
+    print(f"[USER]: {incoming_msg} from {user_id}")
 
-    incoming_msg = form.get("Body")
-    user_id = form.get("From")
+    # ❌ Safety check (VERY IMPORTANT)
+    if not incoming_msg or not user_id:
+        print("❌ Missing Body or From")
+        return Response(
+            content='<?xml version="1.0"?><Response></Response>',
+            media_type="application/xml"
+        )
 
-    print(f"[USER]: {incoming_msg}")
-
-    # ⚡ Instant reply to avoid timeout
+    # ⚡ Instant reply
     instant_reply = "Processing your request... ⏳"
 
     try:
-        # 🔥 Generate AI response
+        # 🤖 Generate AI response
         reply = chat_with_ai(user_id, incoming_msg)
         print(f"[BOT]: {reply}")
 
         # ✅ Split long messages
         parts = split_message(reply)
 
-        # ✅ Send each part via Twilio
+        # ✅ Send via Twilio
         for part in parts:
             msg = client.messages.create(
                 body=part,
                 from_=TWILIO_WHATSAPP_NUMBER,
                 to=user_id
             )
-            print("Sent SID:", msg.sid)
+            print("✅ Sent SID:", msg.sid)
 
     except Exception as e:
-        print("Error:", e)
+        print("❌ Error:", e)
 
-    # ✅ Immediate TwiML response
-    twiml_response = f"""
-<Response>
-    <Message>{instant_reply}</Message>
-</Response>
-"""
+    # ✅ Clean TwiML response (VERY IMPORTANT)
+    twiml_response = (
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        '<Response>'
+        f'<Message>{instant_reply}</Message>'
+        '</Response>'
+    )
 
     return Response(content=twiml_response, media_type="application/xml")
