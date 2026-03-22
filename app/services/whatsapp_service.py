@@ -17,11 +17,11 @@ def split_message(text, limit=1500):
 
 
 async def process_message(incoming_msg, user_id):
-    # 🔥 DEBUG START
+    # 🔥 DEBUG
     print("🔥 process_message called")
     print(f"[USER]: {incoming_msg} from {user_id}")
 
-    # ❌ Safety check (VERY IMPORTANT)
+    # ❌ Safety check
     if not incoming_msg or not user_id:
         print("❌ Missing Body or From")
         return Response(
@@ -40,11 +40,20 @@ async def process_message(incoming_msg, user_id):
         # ✅ Split long messages
         parts = split_message(reply)
 
+        # ✅ FIX: Ensure WhatsApp format
+        if not user_id.startswith("whatsapp:"):
+            user_id = f"whatsapp:{user_id}"
+
+        if not TWILIO_WHATSAPP_NUMBER.startswith("whatsapp:"):
+            from_number = f"whatsapp:{TWILIO_WHATSAPP_NUMBER}"
+        else:
+            from_number = TWILIO_WHATSAPP_NUMBER
+
         # ✅ Send via Twilio
         for part in parts:
             msg = client.messages.create(
                 body=part,
-                from_=TWILIO_WHATSAPP_NUMBER,
+                from_=from_number,
                 to=user_id
             )
             print("✅ Sent SID:", msg.sid)
@@ -52,7 +61,7 @@ async def process_message(incoming_msg, user_id):
     except Exception as e:
         print("❌ Error:", e)
 
-    # ✅ Clean TwiML response (VERY IMPORTANT)
+    # ✅ Clean TwiML response
     twiml_response = (
         '<?xml version="1.0" encoding="UTF-8"?>'
         '<Response>'
