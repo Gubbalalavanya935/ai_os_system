@@ -1,5 +1,6 @@
 from fastapi.responses import Response
 from app.agents.chat_agent import chat_with_ai
+from app.agents.orchestrator import orchestrator
 from twilio.rest import Client
 from app.config import (
     TWILIO_ACCOUNT_SID,
@@ -30,7 +31,7 @@ async def process_message(incoming_msg, user_id):
 
     try:
         # 🤖 Generate AI response (with memory)
-        reply = chat_with_ai(user_id, incoming_msg)
+        reply = orchestrator(user_id, incoming_msg)
         print(f"[BOT]: {reply}")
 
         # ✅ Split long messages
