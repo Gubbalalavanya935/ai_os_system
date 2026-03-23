@@ -17,7 +17,6 @@ def split_message(text, limit=1500):
 
 
 async def process_message(incoming_msg, user_id):
-    # 🔥 DEBUG
     print("🔥 process_message called")
     print(f"[USER]: {incoming_msg} from {user_id}")
 
@@ -29,18 +28,15 @@ async def process_message(incoming_msg, user_id):
             media_type="application/xml"
         )
 
-    # ⚡ Instant reply
-    instant_reply = "Processing your request... ⏳"
-
     try:
-        # 🤖 Generate AI response
+        # 🤖 Generate AI response (with memory)
         reply = chat_with_ai(user_id, incoming_msg)
         print(f"[BOT]: {reply}")
 
         # ✅ Split long messages
         parts = split_message(reply)
 
-        # ✅ FIX: Ensure WhatsApp format
+        # ✅ Ensure WhatsApp format
         if not user_id.startswith("whatsapp:"):
             user_id = f"whatsapp:{user_id}"
 
@@ -49,7 +45,7 @@ async def process_message(incoming_msg, user_id):
         else:
             from_number = TWILIO_WHATSAPP_NUMBER
 
-        # ✅ Send via Twilio
+        # ✅ Send AI response
         for part in parts:
             msg = client.messages.create(
                 body=part,
@@ -61,12 +57,10 @@ async def process_message(incoming_msg, user_id):
     except Exception as e:
         print("❌ Error:", e)
 
-    # ✅ Clean TwiML response
+    # ✅ Empty TwiML (no "Processing..." message)
     twiml_response = (
         '<?xml version="1.0" encoding="UTF-8"?>'
-        '<Response>'
-        f'<Message>{instant_reply}</Message>'
-        '</Response>'
+        '<Response></Response>'
     )
 
     return Response(content=twiml_response, media_type="application/xml")
