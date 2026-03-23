@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Request
-from app.services.whatsapp_service import process_message
+from app.services.whatsapp_service import handle_whatsapp
 
 app = FastAPI()
 
@@ -12,10 +12,4 @@ def home():
 @app.post("/webhook")
 async def whatsapp_webhook(request: Request):
     print("🔥 Webhook HIT")
-
-    form = await request.form()
-
-    incoming_msg = form.get("Body")
-    user_id = form.get("From")
-
-    return await process_message(incoming_msg, user_id)
+    return await handle_whatsapp(request)
