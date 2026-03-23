@@ -5,3 +5,4 @@ groq
 twilio
 requests
 python-multipart
+pinecone-client

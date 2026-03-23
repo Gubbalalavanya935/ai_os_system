@@ -1,17 +1,23 @@
 from app.services.llm_service import generate_response_with_history
-from app.utils.memory import save_message, get_history
+from app.services.rag_service import store_message, retrieve_context
 
-def chat_with_ai(user_id: str, user_input: str) -> str:
-    # Save user message
-    save_message(user_id, "user", user_input)
 
-    # Get history
-    history = get_history(user_id)
+def chat_with_ai(user_id, message):
+    # 🔍 Get past context from Pinecone
+    past_context = retrieve_context(message)
 
-    # Get AI response
-    response = generate_response_with_history(history)
+    messages = []
 
-    # Save AI response
-    save_message(user_id, "assistant", response)
+    for msg in past_context:
+        messages.append({"role": "user", "content": msg})
+
+    messages.append({"role": "user", "content": message})
+
+    # 🤖 Generate response
+    response = generate_response_with_history(messages)
+
+    # 💾 Store messages in Pinecone
+    store_message(user_id, message)
+    store_message(user_id, response)
 
     return response
