@@ -2,23 +2,20 @@ import os
 from dotenv import load_dotenv
 from groq import Groq
 
-# ✅ Load environment variables
 load_dotenv()
 
 api_key = os.getenv("GROQ_API_KEY")
 
-# 🔴 Safety check
 if not api_key:
-    raise ValueError("❌ GROQ_API_KEY not found. Check your .env file")
+    raise ValueError("❌ GROQ_API_KEY not found")
 
-# ✅ Initialize client
 client = Groq(api_key=api_key)
 
 
 def generate_response_with_history(messages):
     try:
         response = client.chat.completions.create(
-            model="llama3-8b-8192",
+            model="llama-3.1-8b-instant",   # ✅ FIXED MODEL
             messages=messages,
             temperature=0.7
         )
