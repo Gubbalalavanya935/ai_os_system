@@ -7,10 +7,10 @@ app = FastAPI()
 
 @app.get("/")
 def home():
-    return {"message": "🚀 AI OS AutoGen Backend Running"}
+    return {"message": "🚀 WhatsApp AI Bot (Groq) Running"}
 
 
-# ✅ Twilio WhatsApp Webhook
+# ✅ Twilio Webhook
 @app.post("/webhook")
 async def whatsapp_webhook(
     Body: str = Form(...),
@@ -19,13 +19,6 @@ async def whatsapp_webhook(
     print("📩 Message:", Body)
     print("👤 From:", From)
 
-    try:
-        reply = run_autogen(Body)
-        print("🤖 Reply:", reply)
+    reply = run_autogen(Body, From)
 
-        # Twilio expects plain text or TwiML
-        return PlainTextResponse(reply)
-
-    except Exception as e:
-        print("❌ ERROR:", e)
-        return PlainTextResponse("Something went wrong ❌")
+    return PlainTextResponse(reply)

@@ -1,54 +1,42 @@
 from app.services.llm_service import generate_response_with_history
 
+# 🧠 In-memory storage
+user_memory = {}
 
-def run_autogen(user_message: str):
+
+def run_autogen(user_message: str, user_id: str):
     try:
         print("🔥 AutoGen START")
-        print("User Message:", user_message)
+        print("User:", user_id)
+        print("Message:", user_message)
 
-        # 🧠 Step 1: Reasoning (hidden thinking)
-        reasoning_prompt = f"""
-You are an intelligent AI assistant.
+        # ✅ Initialize memory
+        if user_id not in user_memory:
+            user_memory[user_id] = [
+                {
+                    "role": "system",
+                    "content": "You are a helpful AI assistant. Give clear, detailed, and human-like answers."
+                }
+            ]
 
-Analyze the question step by step and understand what the user is asking.
+        history = user_memory[user_id]
 
-Question: {user_message}
+        # ➕ Add user message
+        history.append({"role": "user", "content": user_message})
 
-Give your reasoning clearly.
-"""
+        # 🤖 Generate response
+        response = generate_response_with_history(history)
 
-        reasoning = generate_response_with_history([
-            {"role": "user", "content": reasoning_prompt}
-        ])
+        # ➕ Save reply
+        history.append({"role": "assistant", "content": response})
 
-        print("🧠 Reasoning:", reasoning)
+        # 🔒 Keep last 10 messages
+        user_memory[user_id] = history[-10:]
 
-        # 🤖 Step 2: Final Answer (FIXED PROMPT)
-        final_prompt = f"""
-You are a helpful AI assistant.
+        print("🤖 Reply:", response)
 
-Using the reasoning below, provide a complete, clear, and detailed answer to the user's question.
-
-DO NOT answer with "True" or "False".
-DO NOT give short answers.
-Give a proper explanation.
-
-User Question: {user_message}
-
-Reasoning:
-{reasoning}
-
-Final Answer:
-"""
-
-        final_answer = generate_response_with_history([
-            {"role": "user", "content": final_prompt}
-        ])
-
-        print("✅ Final Answer:", final_answer)
-
-        return final_answer.strip()
+        return response.strip()
 
     except Exception as e:
         print("❌ AutoGen Error:", e)
-        return f"❌ Error: {str(e)}"
+        return "Something went wrong ❌"
