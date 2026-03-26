@@ -6,3 +6,5 @@ twilio
 requests
 python-multipart
 pinecone
+streamlit
+pyautogen
