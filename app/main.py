@@ -1,36 +1,31 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
+from fastapi import FastAPI, Form
+from fastapi.responses import PlainTextResponse
 from app.services.autogen_service import run_autogen
 
 app = FastAPI()
 
 
-# ✅ Request schema
-class ChatRequest(BaseModel):
-    message: str
-    user_id: str
-
-
-# ✅ Home route
 @app.get("/")
 def home():
     return {"message": "🚀 AI OS AutoGen Backend Running"}
 
 
-# ✅ Chat API
-@app.post("/chat")
-async def chat(req: ChatRequest):
-    print("🔥 API HIT")
-    print("User:", req.user_id)
-    print("Message:", req.message)
+# ✅ Twilio WhatsApp Webhook
+@app.post("/webhook")
+async def whatsapp_webhook(
+    Body: str = Form(...),
+    From: str = Form(...)
+):
+    print("📩 Message:", Body)
+    print("👤 From:", From)
 
     try:
-        reply = run_autogen(req.message)
-
+        reply = run_autogen(Body)
         print("🤖 Reply:", reply)
 
-        return {"response": reply}
+        # Twilio expects plain text or TwiML
+        return PlainTextResponse(reply)
 
     except Exception as e:
         print("❌ ERROR:", e)
-        return {"response": f"❌ Error: {str(e)}"}
+        return PlainTextResponse("Something went wrong ❌")
