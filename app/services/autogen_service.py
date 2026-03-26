@@ -3,42 +3,39 @@ from app.services.llm_service import generate_response_with_history
 
 def run_autogen(user_message: str):
     try:
-        print("🧠 AutoGen thinking...")
+        print("🔥 AutoGen START")
+        print("User Message:", user_message)
 
-        # 🧠 Step 1: Planning (AutoGen-style reasoning)
-        planning_prompt = f"""
-You are an intelligent AI agent.
+        # 🧠 Step 1: Reasoning
+        reasoning_prompt = f"""
+Think step-by-step and understand the question clearly.
 
-Step 1: Understand the user question
-Step 2: Think step-by-step
-Step 3: Give a clear and helpful answer
-
-User Question: {user_message}
+Question: {user_message}
 """
 
-        plan_response = generate_response_with_history([
-            {"role": "user", "content": planning_prompt}
+        reasoning = generate_response_with_history([
+            {"role": "user", "content": reasoning_prompt}
         ])
 
-        print("📋 Plan created")
+        print("🧠 Reasoning:", reasoning)
 
-        # 🤖 Step 2: Final Answer Generation
+        # 🤖 Step 2: Final Answer
         final_prompt = f"""
-Use the reasoning below to answer clearly:
+Based on this reasoning, give a clear final answer:
 
-{plan_response}
+{reasoning}
 
-Final Answer:
+Answer:
 """
 
-        final_response = generate_response_with_history([
+        final_answer = generate_response_with_history([
             {"role": "user", "content": final_prompt}
         ])
 
-        print("✅ Final response ready")
+        print("✅ Final Answer:", final_answer)
 
-        return final_response
+        return final_answer
 
     except Exception as e:
         print("❌ AutoGen Error:", e)
-        return f"❌ AutoGen Error: {str(e)}"
+        return f"❌ Error: {str(e)}"
