@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Form
-from fastapi.responses import PlainTextResponse
+from fastapi.responses import Response
 from app.services.autogen_service import run_autogen
 
 app = FastAPI()
@@ -7,10 +7,9 @@ app = FastAPI()
 
 @app.get("/")
 def home():
-    return {"message": "🚀 WhatsApp AI Bot (Groq) Running"}
+    return {"message": "🚀 WhatsApp AI Bot Running"}
 
 
-# ✅ Twilio Webhook
 @app.post("/webhook")
 async def whatsapp_webhook(
     Body: str = Form(...),
@@ -21,4 +20,11 @@ async def whatsapp_webhook(
 
     reply = run_autogen(Body, From)
 
-    return PlainTextResponse(reply)
+    # ✅ Twilio requires XML (TwiML)
+    twiml = f"""
+<Response>
+    <Message>{reply}</Message>
+</Response>
+"""
+
+    return Response(content=twiml, media_type="application/xml")
